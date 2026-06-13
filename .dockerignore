@@ -1,0 +1,23 @@
+# Ignore everything
+*
+
+# Essential project files
+!.env
+!artisan
+!bootstrap/
+bootstrap/cache/*
+!composer.json
+!composer.lock
+!config/
+!database/
+database/database.sqlite
+!public/
+!resources/
+!routes/
+!storage/
+storage/*
+!app/
+
+# Ignore local environment files
+.env.local
+.env.*.local

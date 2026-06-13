@@ -1,0 +1,58 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ymaps_app
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=local
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=ymaps
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+    command: >
+      sh -c "
+        php artisan migrate --force &&
+        php artisan serve --host=0.0.0.0 --port=8000
+      "
+
+  vite:
+    image: node:22-alpine
+    container_name: ymaps_vite
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+      - /var/www/node_modules
+    ports:
+      - "5173:5173"
+    environment:
+      - CI=true
+      - LARAVEL_BYPASS_ENV_CHECK=1
+    command: ["sh", "-c", "corepack enable && corepack prepare pnpm@latest --activate && pnpm install && pnpm dev"] 
+
+
+  db:
+    image: postgres:16-alpine
+    container_name: ymaps_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=ymaps
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+    ports:
+      - "5434:5432"
+
+volumes:
+  postgres_data:
