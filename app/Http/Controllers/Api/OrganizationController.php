@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RefreshOrganizationRequest;
 use App\Http\Requests\StoreOrganizationRequest;
 use App\Http\Resources\OrganizationResource;
 use App\Jobs\ParseOrganizationJob;
