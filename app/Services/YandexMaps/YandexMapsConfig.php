@@ -15,6 +15,7 @@ final readonly class YandexMapsConfig
         public int $minDelayMs,
         public int $maxDelayMs,
         public int $rateLimitMinutes,
+        public int $concurrency,
         public int $retryTries,
         public array $retryBackoff,
     ) {}
@@ -32,6 +33,7 @@ final readonly class YandexMapsConfig
             minDelayMs: config('yandex_maps.parsing.min_delay_ms'),
             maxDelayMs: config('yandex_maps.parsing.max_delay_ms'),
             rateLimitMinutes: config('yandex_maps.parsing.rate_limit_minutes'),
+            concurrency: config('yandex_maps.parsing.concurrency'),
             retryTries: config('yandex_maps.retry.tries'),
             retryBackoff: config('yandex_maps.retry.backoff'),
         );

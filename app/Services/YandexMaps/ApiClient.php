@@ -4,8 +4,9 @@ namespace App\Services\YandexMaps;
 
 use App\Exceptions\YandexApiException;
 use GuzzleHttp\Cookie\CookieJar;
+use Illuminate\Http\Client\Pool;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
 
 class ApiClient
 {
@@ -44,6 +45,57 @@ class ApiClient
 
     public function fetchReviews(BusinessId $id, array $session, int $page): array
     {
+        $response = Http::withOptions(['cookies' => $this->cookieJar()])
+            ->withHeaders($this->buildReviewHeaders($id))
+            ->get($this->buildReviewUrl($id, $session, $page));
+
+        return $this->parseReviewResponse($response);
+    }
+
+    public function fetchAllReviews(BusinessId $id, array $session): \Generator
+    {
+        $response = $this->fetchReviews($id, $session, 1);
+
+        if (empty($response['data']['reviews'])) {
+            return;
+        }
+
+        yield $response['data']['reviews'];
+
+        if (count($response['data']['reviews']) < $this->config->pageSize) {
+            return;
+        }
+
+        $headers = $this->buildReviewHeaders($id);
+
+        $pages = range(2, $this->config->maxPages);
+
+        $responses = Http::pool(function (Pool $pool) use ($id, $session, $pages, $headers) {
+            foreach ($pages as $page) {
+                $pool->as('page_'.$page)
+                    ->withOptions(['cookies' => $this->cookieJar()])
+                    ->withHeaders($headers)
+                    ->get($this->buildReviewUrl($id, $session, $page));
+            }
+        }, concurrency: $this->config->concurrency);
+
+        foreach ($pages as $page) {
+            $data = $this->parseReviewResponse($responses['page_'.$page]);
+
+            if (empty($data['data']['reviews'])) {
+                return;
+            }
+
+            yield $data['data']['reviews'];
+
+            if (count($data['data']['reviews']) < $this->config->pageSize) {
+                return;
+            }
+        }
+    }
+
+    private function buildReviewUrl(BusinessId $id, array $session, int $page): string
+    {
         $params = [
             'ajax' => '1',
             'businessId' => $id->toString(),
@@ -61,9 +113,12 @@ class ApiClient
         $queryString = http_build_query($params, '', '&', PHP_QUERY_RFC3986);
         $s = $this->djb2Hash($queryString);
 
-        $url = $this->config->apiEndpoint.'?'.$queryString.'&s='.$s;
+        return $this->config->apiEndpoint.'?'.$queryString.'&s='.$s;
+    }
 
-        $headers = array_merge(
+    private function buildReviewHeaders(BusinessId $id): array
+    {
+        return array_merge(
             $this->config->headers,
             [
                 'user-agent' => $this->config->userAgent,
@@ -71,13 +126,10 @@ class ApiClient
                 'x-retpath-y' => $this->config->baseUrl.'/maps/org/'.$id->toString().'/reviews/',
             ]
         );
+    }
 
-        $response = Http::withOptions(['cookies' => $this->cookieJar()])
-            ->withHeaders($headers)
-            ->get($url);
-
-        Log::info(''.$id->toString().''.$response->getBody());
-
+    private function parseReviewResponse(Response $response): array
+    {
         if ($response->status() !== 200) {
             throw new YandexApiException('Yandex API HTTP error: '.$response->status());
         }
@@ -95,29 +147,6 @@ class ApiClient
         }
 
         return $data;
-    }
-
-    public function fetchAllReviews(BusinessId $id, array $session): \Generator
-    {
-        $page = 1;
-
-        while ($page <= $this->config->maxPages) {
-            $response = $this->fetchReviews($id, $session, $page);
-
-            if (empty($response['data']['reviews'])) {
-                break;
-            }
-
-            yield $response['data']['reviews'];
-
-            if (count($response['data']['reviews']) < $this->config->pageSize) {
-                break;
-            }
-
-            $page++;
-
-            usleep(random_int($this->config->minDelayMs, $this->config->maxDelayMs) * 1000);
-        }
     }
 
     private function djb2Hash(string $str): string

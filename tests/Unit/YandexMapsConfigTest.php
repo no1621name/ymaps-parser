@@ -24,6 +24,7 @@ class YandexMapsConfigTest extends TestCase
                     'yandex_maps.parsing.min_delay_ms' => 500,
                     'yandex_maps.parsing.max_delay_ms' => 1500,
                     'yandex_maps.parsing.rate_limit_minutes' => 60,
+                    'yandex_maps.parsing.concurrency' => 5,
                     'yandex_maps.retry.tries' => 3,
                     'yandex_maps.retry.backoff' => [1, 5, 10],
                     default => $default,
@@ -43,6 +44,7 @@ class YandexMapsConfigTest extends TestCase
         $this->assertEquals(500, $config->minDelayMs);
         $this->assertEquals(1500, $config->maxDelayMs);
         $this->assertEquals(60, $config->rateLimitMinutes);
+        $this->assertEquals(5, $config->concurrency);
         $this->assertEquals(3, $config->retryTries);
         $this->assertEquals([1, 5, 10], $config->retryBackoff);
     }

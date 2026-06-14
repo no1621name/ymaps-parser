@@ -35,9 +35,10 @@ return [
     'parsing' => [
         'page_size' => 50,
         'max_pages' => 12,
-        'min_delay_ms' => 500,
-        'max_delay_ms' => 1500,
+        'min_delay_ms' => 0,
+        'max_delay_ms' => 0,
         'rate_limit_minutes' => 15,
+        'concurrency' => 3,
     ],
 
     'retry' => [
