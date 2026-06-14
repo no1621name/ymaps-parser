@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "open-code-review": {
+      "source": "alibaba/open-code-review",
+      "sourceType": "github",
+      "skillPath": "skills/open-code-review/SKILL.md",
+      "computedHash": "f8ba911346cfbe7ec70c98fc41bbc9163f37606b879cf7dc2468ad4541653bae"
+    },
     "vue": {
       "source": "antfu/skills",
       "sourceType": "github",
