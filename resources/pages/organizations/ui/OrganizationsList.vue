@@ -32,29 +32,36 @@
             </template>
         </OrganizationCard>
       </div>
+
+      <div ref="sentinel" class="flex justify-center py-6">
+        <span
+          v-if="query.isFetchingNextPage.value"
+          class="loading loading-spinner loading-md text-primary"
+        />
+        <span
+          v-else-if="!allLoaded"
+          class="text-sm text-base-content/40"
+        >Scroll for more</span>
+      </div>
     </div>
   </MainLayout>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
 import { useRouter } from 'vue-router';
-import { useQuery } from '@tanstack/vue-query';
 import { orgKeys, OrganizationCard } from '@/entities/organization';
 import { MainLayout } from '@/widgets/main-layout';
+import { useInfiniteScroll } from '@/shared/lib';
 import { fetchOrganizations } from '../api';
 import { CreateOrganizationForm } from '@/features/create-organization';
 import { DeleteOrganizationButton } from '@/features/delete-organization';
 
 const router = useRouter();
 
-const query = useQuery({
-    queryKey: orgKeys.lists(),
-    queryFn: fetchOrganizations,
-    staleTime: 30_000,
-});
-
-const organizations = computed(() => query.data.value ?? []);
+const { query, data: organizations, sentinel, allLoaded } = useInfiniteScroll(
+    orgKeys.lists(),
+    fetchOrganizations,
+);
 
 function goToOrganization(id: number) {
     router.push({ name: 'organization-detail', params: { id } });
