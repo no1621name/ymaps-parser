@@ -26,6 +26,30 @@ services:
         php artisan serve --host=0.0.0.0 --port=8000
       "
 
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ymaps_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - .:/var/www
+    environment:
+      - APP_ENV=local
+      - DB_CONNECTION=pgsql
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_DATABASE=ymaps
+      - DB_USERNAME=root
+      - DB_PASSWORD=secret
+    depends_on:
+      - db
+    command: >
+      sh -c "
+        php artisan queue:work --verbose
+      "
+
   vite:
     image: node:22-alpine
     container_name: ymaps_vite
