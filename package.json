@@ -6,7 +6,8 @@
         "build": "vite build",
         "dev": "vite",
         "lint": "eslint .",
-        "lint:fix": "eslint . --fix"
+        "lint:fix": "eslint . --fix",
+        "lint:types": "vue-tsc"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",

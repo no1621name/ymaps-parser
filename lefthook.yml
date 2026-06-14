@@ -1,8 +1,3 @@
-# EXAMPLE USAGE:
-#
-#   Refer for explanation to following link:
-#   https://lefthook.dev/configuration/
-#
 pre-push:
   parallel: true
   jobs:
@@ -10,6 +5,11 @@ pre-push:
       tags:
         - frontend
       run: pnpm lint
+
+    - name: check types
+      tags:
+        - frontend
+      run: pnpm lint:types
 
     - name: run backend tests
       tags:
