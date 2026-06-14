@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\IndexOrganizationRequest;
 use App\Http\Requests\StoreOrganizationRequest;
+use App\Http\Resources\OrganizationCollection;
 use App\Http\Resources\OrganizationResource;
 use App\Jobs\ParseOrganizationJob;
 use App\Models\Organization;
@@ -11,18 +13,17 @@ use App\Services\YandexMaps\ApiClient;
 use App\Services\YandexMaps\BusinessId;
 use App\Services\YandexMaps\HtmlParser;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OrganizationController extends Controller
 {
-    public function index(Request $request): AnonymousResourceCollection
+    public function index(IndexOrganizationRequest $request): OrganizationCollection
     {
         $organizations = Organization::with('latestReview')
             ->orderByDesc('updated_at')
-            ->paginate($request->integer('per_page', 20));
+            ->paginate($request->validated('per_page', 20));
 
-        return OrganizationResource::collection($organizations);
+        return new OrganizationCollection($organizations);
     }
 
     public function show(Organization $organization): OrganizationResource
