@@ -5,6 +5,7 @@ namespace App\Services\YandexMaps;
 use App\Exceptions\YandexApiException;
 use GuzzleHttp\Cookie\CookieJar;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ApiClient
 {
@@ -74,6 +75,8 @@ class ApiClient
         $response = Http::withOptions(['cookies' => $this->cookieJar()])
             ->withHeaders($headers)
             ->get($url);
+
+        Log::info(''.$id->toString().''.$response->getBody());
 
         if ($response->status() !== 200) {
             throw new YandexApiException('Yandex API HTTP error: '.$response->status());
