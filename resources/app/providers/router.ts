@@ -11,10 +11,6 @@ const routes: RouteRecordRaw[] = [
         component: LoginPage,
     },
     {
-        path: '/login',
-        redirect: { name: 'login' },
-    },
-    {
         path: '/organizations',
         name: 'organizations',
         component: OrganizationsPage,
@@ -25,6 +21,12 @@ const routes: RouteRecordRaw[] = [
         name: 'organization-detail',
         component: OrganizationDetailPage,
         meta: { requiresAuth: true },
+        beforeEnter: (to) => {
+            const id = Number(to.params.id);
+            if (Number.isNaN(id) || !Number.isInteger(id) || id <= 0) {
+                return { name: 'organizations' };
+            }
+        },
     },
     { path: '/:pathMatch(.*)*', redirect: { name: 'login' } },
 ];
