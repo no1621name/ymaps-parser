@@ -25,6 +25,7 @@
         </div>
       </div>
       <p v-if="review.text" class="mt-2 text-sm leading-relaxed">{{ review.text }}</p>
+      <p class="mt-1 text-xs text-base-content/60">{{ new Date(review.published_at).toLocaleDateString() }}</p>
     </div>
   </div>
 </template>
