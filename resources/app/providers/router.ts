@@ -1,17 +1,32 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
-import { HomePage } from '@/pages/home';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 import { LoginPage } from '@/pages/login';
+import { OrganizationsPage } from '@/pages/organizations';
+import { OrganizationDetailPage } from '@/pages/organization-detail';
 import { useAuth } from '@/shared/auth';
 
 const routes: RouteRecordRaw[] = [
     {
         path: '/',
-        name: 'home',
-        component: HomePage,
+        name: 'login',
+        component: LoginPage,
+    },
+    {
+        path: '/login',
+        redirect: { name: 'login' },
+    },
+    {
+        path: '/organizations',
+        name: 'organizations',
+        component: OrganizationsPage,
         meta: { requiresAuth: true },
     },
-    { path: '/login', name: 'login', component: LoginPage },
-    { path: '/:pathMatch(.*)*', redirect: '/' },
+    {
+        path: '/organizations/:id',
+        name: 'organization-detail',
+        component: OrganizationDetailPage,
+        meta: { requiresAuth: true },
+    },
+    { path: '/:pathMatch(.*)*', redirect: { name: 'login' } },
 ];
 
 export const router = createRouter({
@@ -31,6 +46,6 @@ router.beforeEach(async (to) => {
     }
 
     if (to.name === 'login' && user.value) {
-        return { name: 'home' };
+        return { name: 'organizations' };
     }
 });
