@@ -1,7 +1,7 @@
 <template>
   <MainLayout>
     <template #navbar-start>
-      <span class="text-xl">Yandex Maps</span>
+      <span class="text-xl">YmapsParser</span>
     </template>
     <div class="max-w-2xl mx-auto px-4">
       <div class="mb-6">
