@@ -13,7 +13,6 @@ use App\Services\YandexMaps\ApiClient;
 use App\Services\YandexMaps\BusinessId;
 use App\Services\YandexMaps\HtmlParser;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class OrganizationController extends Controller
 {
