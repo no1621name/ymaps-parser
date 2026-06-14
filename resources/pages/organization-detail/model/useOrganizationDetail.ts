@@ -1,11 +1,12 @@
 import { ref, watch, computed, onUnmounted, type Ref } from 'vue';
 import { useRouter, onBeforeRouteUpdate } from 'vue-router';
-import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from '@tanstack/vue-query';
-import { orgKeys, OrganizationStatus, deleteOrganization } from '@/entities/organization';
-import { useParseEvents } from '@/shared/sse/useParseEvents';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import { fetchOrganization, refreshOrganization, fetchReviews } from '../api';
 import { eventLabel, formatTime } from '../model';
+import { orgKeys, OrganizationStatus, deleteOrganization } from '@/entities/organization';
 import type { ParseEvent } from '@/entities/organization';
+import { useParseEvents } from '@/shared/sse/useParseEvents';
+import { useInfiniteScroll } from '@/shared/lib';
 
 export function useOrganizationDetail(orgId: Ref<number>) {
     const router = useRouter();
@@ -13,29 +14,28 @@ export function useOrganizationDetail(orgId: Ref<number>) {
     const sse = useParseEvents();
 
     const orgEvents = ref<ParseEvent[]>([]);
-    const sentinel = ref<HTMLElement | null>(null);
+
+    const isIdValid = computed(() => Number.isFinite(orgId.value) && orgId.value > 0);
 
     const orgQuery = useQuery({
         queryKey: computed(() => orgKeys.detail(orgId.value)),
         queryFn: () => fetchOrganization(orgId.value),
         staleTime: 30_000,
+        enabled: isIdValid,
     });
 
-    const reviewsQuery = useInfiniteQuery({
-        queryKey: computed(() => orgKeys.reviews(orgId.value)),
-        queryFn: ({ pageParam }) => fetchReviews(orgId.value, pageParam),
-        initialPageParam: 1,
-        getNextPageParam: (lastPage) => {
-            const { current_page, total, per_page } = lastPage.meta;
-
-            return current_page * per_page < total ? current_page + 1 : undefined;
-        },
-        staleTime: 30_000,
-    });
-
-    const reviews = computed(() => reviewsQuery.data.value?.pages.flatMap(p => p.data) ?? []);
-    const totalReviews = computed(() => reviewsQuery.data.value?.pages[0]?.meta.total ?? 0);
-    const allLoaded = computed(() => !reviewsQuery.hasNextPage.value);
+    const {
+        query: reviewsQuery,
+        data: reviews,
+        total: totalReviews,
+        allLoaded,
+        sentinel,
+        cleanup: cleanupScroll,
+    } = useInfiniteScroll(
+        computed(() => orgKeys.reviews(orgId.value)),
+        page => fetchReviews(orgId.value, page),
+        { enabled: isIdValid },
+    );
 
     const isParsing = computed(() => {
         const status = orgQuery.data.value?.status;
@@ -134,25 +134,6 @@ export function useOrganizationDetail(orgId: Ref<number>) {
         }
     });
 
-    let observer: IntersectionObserver | null = null;
-
-    watch(sentinel, (el) => {
-        observer?.disconnect();
-        observer = null;
-
-        if (el) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    if (entries[0]?.isIntersecting && reviewsQuery.hasNextPage.value && !reviewsQuery.isFetchingNextPage.value) {
-                        reviewsQuery.fetchNextPage();
-                    }
-                },
-                { threshold: 0.1 },
-            );
-            observer.observe(el);
-        }
-    });
-
     function init(id: number) {
         sse.reset();
         orgEvents.value = [];
@@ -165,9 +146,8 @@ export function useOrganizationDetail(orgId: Ref<number>) {
             invalidationTimer = null;
         }
         flushInvalidation();
+        cleanupScroll();
         sse.disconnect();
-        observer?.disconnect();
-        observer = null;
     }
 
     onUnmounted(cleanup);
