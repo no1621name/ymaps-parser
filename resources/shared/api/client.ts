@@ -1,4 +1,5 @@
 import { ofetch } from 'ofetch';
+import { useToast } from '@/shared/ui/toast';
 
 export const client = ofetch.create({
     baseURL: import.meta.env.VITE_APP_URL || '',
@@ -7,4 +8,9 @@ export const client = ofetch.create({
         'X-Requested-With': 'XMLHttpRequest',
     },
     credentials: 'include',
+    onResponseError({ response }) {
+        const { error } = useToast();
+        error(response._data?.message || `Server error (${response.status})`);
+    },
+    retry: 0,
 });

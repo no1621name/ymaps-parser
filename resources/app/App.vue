@@ -1,11 +1,13 @@
 <template>
-  <RouterView />
+    <ToastList />
+    <RouterView />
 </template>
 
 <script setup lang="ts">
 import { watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuth } from '@/shared/auth';
+import { ToastList } from '@/shared/ui/toast';
 
 const { user } = useAuth();
 const router = useRouter();

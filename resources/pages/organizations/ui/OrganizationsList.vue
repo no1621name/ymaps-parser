@@ -12,10 +12,6 @@
         <span class="loading loading-spinner loading-lg text-primary" />
       </div>
 
-      <div v-else-if="query.isError.value" class="alert alert-error">
-        <span>{{ query.error.value?.message }}</span>
-      </div>
-
       <div v-else-if="organizations.length === 0" class="text-center py-12 text-base-content/60">
         <p class="text-lg">No organizations yet</p>
         <p class="text-sm mt-1">Add a Yandex Maps URL above to get started</p>

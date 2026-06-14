@@ -78,10 +78,6 @@
           <span class="text-sm font-normal text-base-content/60">({{ totalReviews }})</span>
         </h3>
 
-        <div v-if="fetchError" class="alert alert-error mb-4">
-          <span>{{ fetchError?.message }}</span>
-        </div>
-
         <div v-if="reviewsLoading && reviews.length === 0" class="flex justify-center py-8">
           <span class="loading loading-spinner text-primary" />
         </div>
@@ -104,10 +100,6 @@
           <span v-else-if="!allLoaded" class="text-xs text-base-content/30">Loading more...</span>
         </div>
       </template>
-
-      <div v-else-if="fetchError" class="alert alert-error">
-        <span>{{ fetchError?.message }}</span>
-      </div>
     </div>
   </MainLayout>
 </template>
@@ -127,7 +119,6 @@ const orgId = computed(() => Number(route.params.id));
 const {
     org,
     loading,
-    fetchError,
     refreshing,
     reviews,
     reviewsLoading,
