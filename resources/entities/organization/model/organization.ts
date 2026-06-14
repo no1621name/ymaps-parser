@@ -1,3 +1,4 @@
+import type { PaginatedResponse } from '@/shared/api';
 import { OrganizationStatus } from './organization-status';
 
 export interface Organization {
@@ -11,3 +12,5 @@ export interface Organization {
     error_message: string | null;
     parsed_at: string | null;
 }
+
+export type OrganizationsResponse = PaginatedResponse<Organization>;

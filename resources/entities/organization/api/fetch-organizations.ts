@@ -1,10 +1,10 @@
 import { client } from '@/shared/api';
-import type { Organization } from '../model/organization';
+import type { Organization, OrganizationsResponse } from '../model/organization';
 
-export async function fetchOrganizations(): Promise<Organization[]> {
-    const data = await client<{ data: Organization[] }>('/api/organizations');
-
-    return data.data;
+export async function fetchOrganizations(page: number = 1): Promise<OrganizationsResponse> {
+    return client<OrganizationsResponse>('/api/organizations', {
+        query: { page },
+    });
 }
 
 export async function createOrganization(url: string): Promise<Organization> {

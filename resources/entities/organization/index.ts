@@ -1,4 +1,4 @@
-export type { Organization, Review, ReviewsResponse, ParseEvent } from './model';
+export type { Organization, OrganizationsResponse, Review, ReviewsResponse, ParseEvent } from './model';
 export { OrganizationStatus, orgKeys } from './model';
 export {
     fetchOrganizations,
