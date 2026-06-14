@@ -4,9 +4,14 @@ import tailwindcss from '@tailwindcss/vite';
 import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
+    resolve: {
+        alias: {
+            '@': '/resources',
+        },
+    },
     plugins: [
         laravel({
-            input: ['resources/app.ts'],
+            input: ['resources/main.ts'],
             refresh: true,
         }),
         tailwindcss(),
