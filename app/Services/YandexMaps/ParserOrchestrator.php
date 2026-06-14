@@ -5,6 +5,7 @@ namespace App\Services\YandexMaps;
 use App\Enums\OrganizationStatus;
 use App\Exceptions\YandexParseException;
 use App\Models\Organization;
+use App\Models\ParseEvent;
 use App\Models\Review;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -33,6 +34,11 @@ class ParserOrchestrator
                 'status' => OrganizationStatus::Parsing,
             ]);
 
+            ParseEvent::create([
+                'organization_id' => $organization->id,
+                'type' => 'info_ready',
+            ]);
+
             foreach ($this->apiClient->fetchAllReviews($businessId, $session) as $reviews) {
                 foreach ($reviews as $review) {
                     Review::updateOrCreate(
@@ -40,7 +46,7 @@ class ParserOrchestrator
                         [
                             'organization_id' => $organization->id,
                             'author_name' => $review['author']['name'] ?? '',
-                            'avatar_url' => $review['author']['avatarUrl'] ? str_replace('{size}', '', $review['author']['avatarUrl']) : null,
+                            'avatar_url' => ($avatarUrl = $review['author']['avatarUrl'] ?? null) ? str_replace('{size}', '', $avatarUrl) : null,
                             'rating' => $review['rating'] ?? 0,
                             'text' => $review['text'] ?? '',
                             'published_at' => $review['updatedTime'] ?? null,
@@ -50,11 +56,22 @@ class ParserOrchestrator
             }
 
             $organization->markAsDone();
+
+            ParseEvent::create([
+                'organization_id' => $organization->id,
+                'type' => 'reviews_ready',
+            ]);
         } catch (Throwable $e) {
             Log::error('Failed to parse organization reviews', [
                 'organization_id' => $organization->id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
+            ]);
+
+            ParseEvent::create([
+                'organization_id' => $organization->id,
+                'type' => 'failed',
+                'payload' => ['message' => $e->getMessage()],
             ]);
 
             $organization->markAsFailed($e->getMessage());
