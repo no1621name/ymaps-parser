@@ -19,6 +19,8 @@ class ReviewFactory extends Factory
             'avatar_url' => $this->faker->optional()->imageUrl(),
             'rating' => $this->faker->numberBetween(1, 5),
             'text' => $this->faker->paragraph(),
+            'likes' => $this->faker->numberBetween(0, 50),
+            'dislikes' => $this->faker->numberBetween(0, 10),
             'published_at' => $this->faker->dateTimeBetween('-1 year', 'now'),
         ];
     }

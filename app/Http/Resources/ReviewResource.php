@@ -16,6 +16,8 @@ class ReviewResource extends JsonResource
             'avatar_url' => $this->avatar_url,
             'rating' => $this->rating,
             'text' => $this->text,
+            'likes' => $this->likes,
+            'dislikes' => $this->dislikes,
             'published_at' => $this->published_at->toISOString(),
         ];
     }

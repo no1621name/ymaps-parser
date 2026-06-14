@@ -13,7 +13,7 @@
           </div>
         </div>
         <span class="font-medium text-sm">{{ review.author_name }}</span>
-        <div class="rating rating-xs gap-0.5 ml-auto">
+        <div v-if="review.rating" class="rating rating-xs gap-0.5 ml-auto">
           <input
             v-for="star in 5"
             :key="star"
@@ -25,7 +25,17 @@
         </div>
       </div>
       <p v-if="review.text" class="mt-2 text-sm leading-relaxed">{{ review.text }}</p>
-      <p class="mt-1 text-xs text-base-content/60">{{ new Date(review.published_at).toLocaleDateString() }}</p>
+      <div class="mt-2 flex items-center gap-3 text-xs text-base-content/60">
+        <span class="flex items-center gap-1">
+          👍
+          {{ review.likes }}
+        </span>
+        <span class="flex items-center gap-1">
+          👎
+          {{ review.dislikes }}
+        </span>
+        <span>{{ new Date(review.published_at).toLocaleDateString() }}</span>
+      </div>
     </div>
   </div>
 </template>

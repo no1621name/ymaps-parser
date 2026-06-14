@@ -19,12 +19,16 @@ class Review extends Model
         'rating',
         'text',
         'published_at',
+        'likes',
+        'dislikes',
     ];
 
     protected function casts(): array
     {
         return [
             'rating' => 'integer',
+            'likes' => 'integer',
+            'dislikes' => 'integer',
             'published_at' => 'datetime',
         ];
     }

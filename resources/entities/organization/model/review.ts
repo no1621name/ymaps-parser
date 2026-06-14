@@ -6,6 +6,8 @@ export interface Review {
     avatar_url: string | null;
     rating: number;
     text: string | null;
+    likes: number;
+    dislikes: number;
     published_at: string;
 }
 

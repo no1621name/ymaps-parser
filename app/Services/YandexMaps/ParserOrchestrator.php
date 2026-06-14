@@ -50,6 +50,8 @@ class ParserOrchestrator
                             'rating' => $review['rating'] ?? 0,
                             'text' => $review['text'] ?? '',
                             'published_at' => $review['updatedTime'] ?? null,
+                            'likes' => $review['reactions']['likes'] ?? 0,
+                            'dislikes' => $review['reactions']['dislikes'] ?? 0,
                         ]
                     );
                 }
