@@ -51,9 +51,9 @@ const deleteError = ref<string | null>(null);
 
 const { isPending, mutate } = useMutation({
     mutationFn: () => deleteOrganization(props.orgId),
-    onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: orgKeys.all, refetchType: 'none' });
-        router.push({ name: 'organizations' });
+    onSuccess: async () => {
+        await queryClient.invalidateQueries({ queryKey: orgKeys.all });
+        await router.push({ name: 'organizations' });
     },
     onError: (err) => {
         deleteError.value = err instanceof Error ? err.message : 'Failed to delete';
