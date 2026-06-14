@@ -37,7 +37,7 @@ return [
         'max_pages' => 12,
         'min_delay_ms' => 500,
         'max_delay_ms' => 1500,
-        'rate_limit_minutes' => 0,
+        'rate_limit_minutes' => 15,
     ],
 
     'retry' => [
