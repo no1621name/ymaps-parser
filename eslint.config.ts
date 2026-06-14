@@ -6,6 +6,7 @@ import { defineConfig } from 'eslint/config';
 import stylistic from '@stylistic/eslint-plugin';
 
 export default defineConfig([
+    { ignores: ['**/vendor/**', '**/build/**'] },
     { files: ['**/*.{js,mjs,cjs,ts,mts,cts,vue}'], plugins: { js }, extends: ['js/recommended'], languageOptions: { globals: globals.browser } },
     tseslint.configs.recommended,
     pluginVue.configs['flat/essential'],

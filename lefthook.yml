@@ -1,0 +1,22 @@
+# EXAMPLE USAGE:
+#
+#   Refer for explanation to following link:
+#   https://lefthook.dev/configuration/
+#
+pre-push:
+  parallel: true
+  jobs:
+    - name: lint frontend
+      tags:
+        - frontend
+      run: pnpm lint
+
+    - name: run backend tests
+      tags:
+        - backend
+      run: php artisan test
+
+    - name: lint backend
+      tags:
+        - backend
+      run: vendor/bin/pint --test -v
