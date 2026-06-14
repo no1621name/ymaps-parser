@@ -39,6 +39,14 @@ class YandexMapsUrlRuleTest extends TestCase
         $this->assertTrue($result);
     }
 
+    public function test_passes_short_url(): void
+    {
+        $result = $this->rule->passes('url', 'https://yandex.ru/maps/-/CPtxz670');
+
+        $this->assertTrue($result);
+        $this->assertNull($this->rule->getBusinessId());
+    }
+
     public function test_fails_invalid_url(): void
     {
         $result = $this->rule->passes('url', 'https://google.com/');

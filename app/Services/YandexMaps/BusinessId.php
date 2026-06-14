@@ -23,6 +23,10 @@ final class BusinessId
     {
         $url = urldecode($url);
 
+        if (self::isShortUrl($url)) {
+            throw new BusinessIdNotFoundException('Short URL requires redirect resolution');
+        }
+
         if (preg_match('#/maps/org/[^/]+/(\d{10,12})/#', $url, $matches)) {
             return new self($matches[1]);
         }
@@ -36,6 +40,34 @@ final class BusinessId
         }
 
         throw new BusinessIdNotFoundException;
+    }
+
+    public static function isUrlSupported(string $url): bool
+    {
+        $url = urldecode($url);
+
+        if (self::isShortUrl($url)) {
+            return true;
+        }
+
+        if (preg_match('#/maps/org/[^/]+/(\d{10,12})/#', $url)) {
+            return true;
+        }
+
+        if (preg_match('/oid=(\d{10,12})/', $url)) {
+            return true;
+        }
+
+        if (preg_match('#/maps/[^/]+/[^/]+/(\d{10,12})#', $url)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    public static function isShortUrl(string $url): bool
+    {
+        return (bool) preg_match('#/maps/-/#', $url);
     }
 
     public function toString(): string

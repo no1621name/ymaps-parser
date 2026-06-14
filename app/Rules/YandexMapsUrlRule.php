@@ -12,13 +12,17 @@ class YandexMapsUrlRule implements Rule
 
     public function passes($attribute, $value): bool
     {
-        try {
-            $this->businessId = BusinessId::fromUrl($value);
-
-            return true;
-        } catch (BusinessIdNotFoundException) {
+        if (! BusinessId::isUrlSupported($value)) {
             return false;
         }
+
+        try {
+            $this->businessId = BusinessId::fromUrl($value);
+        } catch (BusinessIdNotFoundException) {
+            // Short URLs are valid but don't contain the business ID directly
+        }
+
+        return true;
     }
 
     public function message(): string

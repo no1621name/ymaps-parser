@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Exceptions\BusinessIdNotFoundException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\IndexOrganizationRequest;
 use App\Http\Requests\StoreOrganizationRequest;
@@ -34,7 +35,14 @@ class OrganizationController extends Controller
 
     public function store(StoreOrganizationRequest $request, ApiClient $apiClient, HtmlParser $htmlParser): JsonResponse
     {
-        $businessId = BusinessId::fromUrl($request->validated('url'));
+        $url = $request->validated('url');
+
+        try {
+            $businessId = BusinessId::fromUrl($url);
+        } catch (BusinessIdNotFoundException) {
+            $resolved = $apiClient->resolveUrl($url);
+            $businessId = BusinessId::fromUrl($resolved);
+        }
 
         $organization = Organization::firstOrCreate(
             ['business_id' => $businessId->value],

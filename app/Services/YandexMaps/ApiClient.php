@@ -21,6 +21,35 @@ class ApiClient
         return $this->cookieJar ??= new CookieJar;
     }
 
+    public function resolveUrl(string $url): string
+    {
+        $response = Http::withOptions([
+            'allow_redirects' => false,
+            'cookies' => $this->cookieJar(),
+        ])
+            ->withHeaders(['user-agent' => $this->config->userAgent])
+            ->get($url);
+
+        $location = $response->header('Location');
+
+        if ($location === null) {
+            throw new YandexApiException('Short URL did not return a redirect Location header');
+        }
+
+        if (! str_starts_with($location, 'http')) {
+            $parsed = parse_url($url);
+            $location = ($parsed['scheme'] ?? 'https').'://'.($parsed['host'] ?? 'yandex.ru').$location;
+        }
+
+        $resolved = urldecode($location);
+
+        if (! BusinessId::isUrlSupported($resolved) || BusinessId::isShortUrl($resolved)) {
+            throw new YandexApiException('Resolved URL is not a valid organization page');
+        }
+
+        return $resolved;
+    }
+
     public function fetchOrgPage(BusinessId $id): string
     {
         $htmlHeaders = array_merge(

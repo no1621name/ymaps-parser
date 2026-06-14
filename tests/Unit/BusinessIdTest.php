@@ -71,6 +71,13 @@ class BusinessIdTest extends TestCase
         $this->assertEquals('41332984866', $id->value);
     }
 
+    public function test_from_url_short_url_throws_exception(): void
+    {
+        $this->expectException(BusinessIdNotFoundException::class);
+
+        BusinessId::fromUrl('https://yandex.ru/maps/-/CPtxz670');
+    }
+
     public function test_from_url_invalid(): void
     {
         $this->expectException(BusinessIdNotFoundException::class);
@@ -83,5 +90,30 @@ class BusinessIdTest extends TestCase
         $id = BusinessId::fromString('41332984866');
 
         $this->assertEquals('41332984866', $id->toString());
+    }
+
+    public function test_is_url_supported_short_url(): void
+    {
+        $this->assertTrue(BusinessId::isUrlSupported('https://yandex.ru/maps/-/CPtxz670'));
+    }
+
+    public function test_is_url_supported_normal_url(): void
+    {
+        $this->assertTrue(BusinessId::isUrlSupported('https://yandex.ru/maps/org/название/41332984866/'));
+    }
+
+    public function test_is_url_supported_invalid(): void
+    {
+        $this->assertFalse(BusinessId::isUrlSupported('https://google.com/maps/'));
+    }
+
+    public function test_is_short_url_returns_true(): void
+    {
+        $this->assertTrue(BusinessId::isShortUrl('https://yandex.ru/maps/-/CPtxz670'));
+    }
+
+    public function test_is_short_url_returns_false(): void
+    {
+        $this->assertFalse(BusinessId::isShortUrl('https://yandex.ru/maps/org/название/41332984866/'));
     }
 }
