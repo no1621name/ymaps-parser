@@ -30,7 +30,7 @@ class OrganizationTest extends TestCase
     {
         $org = Organization::factory()->create([
             'status' => OrganizationStatus::Done,
-            'parsed_at' => now()->subMinutes(30),
+            'parsed_at' => now()->subMinutes(2),
         ]);
 
         $this->assertFalse($org->isParsingAllowed());

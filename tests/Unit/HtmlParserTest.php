@@ -61,7 +61,7 @@ class HtmlParserTest extends TestCase
         $meta = $this->parser->extractMetaData($html);
 
         $this->assertInstanceOf(OrganizationMetaData::class, $meta);
-        $this->assertEquals('Магнит', $meta->name);
+        $this->assertEquals('Преображение', $meta->name);
         $this->assertEquals(165, $meta->reviewsCount);
         $this->assertEquals(584, $meta->ratingsCount);
         $this->assertEquals(3.8, $meta->avgRating);
