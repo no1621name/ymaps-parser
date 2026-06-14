@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\Organization;
+use App\Models\ParseEvent;
 use App\Services\YandexMaps\ParserOrchestrator;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -51,6 +52,12 @@ class ParseOrganizationJob implements ShouldBeUnique, ShouldQueue
         if (! $organization) {
             return;
         }
+
+        ParseEvent::create([
+            'organization_id' => $organization->id,
+            'type' => 'failed',
+            'payload' => ['message' => $exception?->getMessage() ?? 'Unknown error'],
+        ]);
 
         $organization->markAsFailed($exception?->getMessage() ?? 'Unknown error');
     }
