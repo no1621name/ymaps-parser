@@ -14,14 +14,13 @@ class ReviewCollection extends ResourceCollection
         return $this->collection->toArray();
     }
 
-
     public function paginationInformation(Request $request, array $paginated, array $default): array
     {
         return [
             'meta' => [
                 'current_page' => $default['meta']['current_page'],
-                'total'        => $default['meta']['total'],
-                'per_page'     => $default['meta']['per_page'],
+                'total' => $default['meta']['total'],
+                'per_page' => $default['meta']['per_page'],
             ],
         ];
     }
