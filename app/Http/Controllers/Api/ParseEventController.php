@@ -41,6 +41,7 @@ class ParseEventController extends Controller
                     echo "id: {$event->id}\n";
                     echo "event: {$event->type}\n";
                     echo 'data: '.json_encode([
+                        'id' => $event->id,
                         'type' => $event->type,
                         'payload' => $event->payload,
                         'created_at' => $event->created_at->toISOString(),
