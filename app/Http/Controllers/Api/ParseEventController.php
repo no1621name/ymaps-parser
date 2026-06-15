@@ -25,7 +25,9 @@ class ParseEventController extends Controller
 
                 if ((time() - $start) > $maxDuration) {
                     echo "event: timeout\ndata: {}\n\n";
-                    ob_flush();
+                    if (ob_get_level()) {
+                        ob_flush();
+                    }
                     flush();
                     break;
                 }
@@ -47,7 +49,9 @@ class ParseEventController extends Controller
                         'created_at' => $event->created_at->toISOString(),
                     ])."\n\n";
 
-                    ob_flush();
+                    if (ob_get_level()) {
+                        ob_flush();
+                    }
                     flush();
                 }
 
@@ -55,14 +59,18 @@ class ParseEventController extends Controller
 
                 if ($events->isNotEmpty() && ($org->status->value === 'done' || $org->status->value === 'failed')) {
                     echo "event: complete\ndata: {}\n\n";
-                    ob_flush();
+                    if (ob_get_level()) {
+                        ob_flush();
+                    }
                     flush();
                     break;
                 }
 
                 if ($events->isEmpty()) {
                     echo ": heartbeat\n\n";
-                    ob_flush();
+                    if (ob_get_level()) {
+                        ob_flush();
+                    }
                     flush();
                 }
 
