@@ -1,0 +1,77 @@
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: ymaps_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./public:/var/www/public:ro
+    depends_on:
+      - app
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: no1621name/ymaps:latest
+    container_name: ymaps_app
+    restart: unless-stopped
+    working_dir: /var/www
+    env_file: .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: no1621name/ymaps:latest
+    container_name: ymaps_queue
+    restart: unless-stopped
+    working_dir: /var/www
+    env_file: .env
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: no1621name/ymaps:latest
+    container_name: ymaps_migrate
+    working_dir: /var/www
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      sh -c "
+        php artisan migrate --force &&
+        php artisan db:seed --force
+      "
+    restart: "no"
+
+  db:
+    image: postgres:16-alpine
+    container_name: ymaps_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE}"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+      start_period: 15s
+
+volumes:
+  postgres_data:
