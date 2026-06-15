@@ -31,7 +31,6 @@ const routes: RouteRecordRaw[] = [
     { path: '/:pathMatch(.*)*', redirect: { name: 'login' } },
 ];
 
-
 export const router = createRouter({
     history: createWebHistory('/'),
     routes,
