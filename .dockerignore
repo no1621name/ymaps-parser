@@ -21,3 +21,10 @@ storage/*
 # Ignore local environment files
 .env.local
 .env.*.local
+
+# Frontend
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+!vite.config.*
+!tsconfig.*
