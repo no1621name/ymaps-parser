@@ -1,0 +1,25 @@
+FROM node:22-alpine AS assets
+WORKDIR /var/www
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN npm i -g pnpm && pnpm install --frozen-lockfile
+COPY . .
+RUN pnpm build
+
+FROM php:8.5-fpm-alpine
+WORKDIR /var/www
+
+RUN apk add --no-cache postgresql-dev postgresql-client \
+    && docker-php-ext-install pdo_pgsql \
+    && apk del postgresql-dev
+
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY . .
+COPY --from=assets /var/www/public/build ./public/build
+
+RUN mkdir -p storage/framework/{views,cache,sessions} \
+        storage/logs \
+        bootstrap/cache \
+    && composer install --optimize-autoloader \
+    && php artisan config:cache \
+    && php artisan route:cache \
+    && chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
