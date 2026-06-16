@@ -59,6 +59,26 @@ services:
         condition: service_completed_successfully
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
 
+  schedule:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    image: no1621name/ymaps:latest
+    container_name: ymaps_schedule
+    restart: unless-stopped
+    working_dir: /var/www
+    env_file: .env
+    depends_on:
+      - app
+      - db
+    command: >
+      sh -c "
+        while true; do
+          php artisan schedule:run --no-interaction;
+          sleep 60;
+        done
+      "
+
   migrate:
     build:
       context: .
