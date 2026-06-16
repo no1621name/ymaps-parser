@@ -74,42 +74,104 @@ class ApiClient
 
     public function fetchReviews(BusinessId $id, array $session, int $page): array
     {
-        $response = Http::withOptions(['cookies' => $this->cookieJar()])
-            ->withHeaders($this->buildReviewHeaders($id))
-            ->get($this->buildReviewUrl($id, $session, $page));
+        $response = $this->sendReviewRequest($id, $session, $page, $this->buildReviewHeaders($id));
 
         return $this->parseReviewResponse($response);
     }
 
     public function fetchAllReviews(BusinessId $id, array $session): \Generator
     {
-        $response = $this->fetchReviews($id, $session, 1);
-
-        if (empty($response['data']['reviews'])) {
-            return;
+        try {
+            $firstResponse = $this->fetchReviews($id, $session, 1);
+        } catch (YandexApiException $e) {
+            if ($e->getCode() === 429) {
+                $sequential = true;
+                $firstResponse = null;
+            } else {
+                throw $e;
+            }
         }
 
-        yield $response['data']['reviews'];
+        if ($firstResponse !== null) {
+            if (empty($firstResponse['data']['reviews'])) {
+                return;
+            }
 
-        if (count($response['data']['reviews']) < $this->config->pageSize) {
-            return;
+            yield $firstResponse['data']['reviews'];
+
+            if (count($firstResponse['data']['reviews']) < $this->config->pageSize) {
+                return;
+            }
         }
 
+        $sequential ??= false;
+        $pages = range(2, $this->config->maxPages);
         $headers = $this->buildReviewHeaders($id);
 
-        $pages = range(2, $this->config->maxPages);
+        if ($sequential) {
+            yield from $this->fetchPagesSequential($id, $session, $pages, $headers);
 
-        $responses = Http::pool(function (Pool $pool) use ($id, $session, $pages, $headers) {
+            return;
+        }
+
+        try {
+            $responses = Http::pool(function (Pool $pool) use ($id, $session, $pages, $headers) {
+                foreach ($pages as $page) {
+                    $pool->as('page_'.$page)
+                        ->withOptions(['cookies' => $this->cookieJar()])
+                        ->withHeaders($headers)
+                        ->get($this->buildReviewUrl($id, $session, $page));
+                }
+            }, concurrency: $this->config->concurrency);
+
             foreach ($pages as $page) {
-                $pool->as('page_'.$page)
-                    ->withOptions(['cookies' => $this->cookieJar()])
-                    ->withHeaders($headers)
-                    ->get($this->buildReviewUrl($id, $session, $page));
-            }
-        }, concurrency: $this->config->concurrency);
+                $data = $this->parseReviewResponse($responses['page_'.$page]);
 
+                if (empty($data['data']['reviews'])) {
+                    return;
+                }
+
+                yield $data['data']['reviews'];
+
+                if (count($data['data']['reviews']) < $this->config->pageSize) {
+                    return;
+                }
+            }
+        } catch (YandexApiException $e) {
+            if ($e->getCode() !== 429) {
+                throw $e;
+            }
+
+            yield from $this->fetchPagesSequential($id, $session, $pages, $headers);
+        }
+    }
+
+    private function sendReviewRequest(BusinessId $id, array $session, int $page, array $headers): Response
+    {
+        return Http::withOptions(['cookies' => $this->cookieJar()])
+            ->withHeaders($headers)
+            ->get($this->buildReviewUrl($id, $session, $page));
+    }
+
+    private function fetchPagesSequential(BusinessId $id, array $session, array $pages, array $headers): \Generator
+    {
         foreach ($pages as $page) {
-            $data = $this->parseReviewResponse($responses['page_'.$page]);
+            $delay = rand($this->config->minDelayMs, $this->config->maxDelayMs) * 1000;
+            usleep($delay);
+
+            $response = $this->sendReviewRequest($id, $session, $page, $headers);
+
+            try {
+                $data = $this->parseReviewResponse($response);
+            } catch (YandexApiException $e) {
+                if ($e->getCode() === 429) {
+                    usleep($this->config->maxDelayMs * 1000);
+                    $response = $this->sendReviewRequest($id, $session, $page, $headers);
+                    $data = $this->parseReviewResponse($response);
+                } else {
+                    throw $e;
+                }
+            }
 
             if (empty($data['data']['reviews'])) {
                 return;
@@ -159,6 +221,10 @@ class ApiClient
 
     private function parseReviewResponse(Response $response): array
     {
+        if ($response->status() === 429) {
+            throw new YandexApiException('Yandex API rate limit: 429', code: 429);
+        }
+
         if ($response->status() !== 200) {
             throw new YandexApiException('Yandex API HTTP error: '.$response->status());
         }
