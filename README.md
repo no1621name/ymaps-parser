@@ -8,6 +8,9 @@ password: `password`
 
 ## Локальный запуск
 
+Скопировать содержимое из `.env.example` в `.env`
+
+Запустить:
 ```
 docker compose up
 ```
