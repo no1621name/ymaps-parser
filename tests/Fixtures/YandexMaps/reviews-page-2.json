@@ -1,0 +1,30 @@
+{
+    "data": {
+        "reviews": [
+            {
+                "reviewId": "mG61dMx19C99ePbV79h3iB5gwcA7lWT5",
+                "businessId": "101601401068",
+                "author": {
+                    "name": "Павел Добрынин",
+                    "avatarUrl": null
+                },
+                "text": "Вкусная еда и хороший сервис.",
+                "rating": 5,
+                "updatedTime": "2026-04-07T09:07:51.384Z",
+                "reactions": {
+                    "likes": 0,
+                    "dislikes": 0
+                }
+            }
+        ],
+        "params": {
+            "offset": 2,
+            "limit": 2,
+            "count": 3,
+            "loadedReviewsCount": 3,
+            "page": 2,
+            "totalPages": 2,
+            "reviewsRemained": 0
+        }
+    }
+}
