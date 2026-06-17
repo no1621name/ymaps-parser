@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Contracts\ReviewParser;
 use App\Services\YandexMaps\ApiClient;
+use App\Services\YandexMaps\ApiReviewParser;
+use App\Services\YandexMaps\HeadlessReviewParser;
 use App\Services\YandexMaps\HtmlParser;
 use App\Services\YandexMaps\ParserOrchestrator;
 use App\Services\YandexMaps\YandexMapsConfig;
@@ -20,6 +23,8 @@ class YandexMapsServiceProvider extends ServiceProvider
 
         $this->app->scoped(ApiClient::class);
 
+        $this->app->bind(ReviewParser::class, ApiReviewParser::class);
+        $this->app->bind(HeadlessReviewParser::class);
         $this->app->bind(ParserOrchestrator::class);
     }
 
