@@ -1,0 +1,45 @@
+{
+    "data": {
+        "reviews": [
+            {
+                "reviewId": "5Qeq3d4e84dkvPtEtgr09nOA15crVLdIg",
+                "businessId": "101601401068",
+                "author": {
+                    "name": "Кирилл Дмитриев",
+                    "avatarUrl": "https://avatars.mds.yandex.net/get-yapic/53031/0c-3/{size}"
+                },
+                "text": "Зашёл вечером - уютный интерьер...",
+                "rating": 5,
+                "updatedTime": "2026-04-07T09:07:51.384Z",
+                "reactions": {
+                    "likes": 0,
+                    "dislikes": 0
+                }
+            },
+            {
+                "reviewId": "mBK2JecOpO9sKC9tBCfIsJ6DjLVP7YI",
+                "businessId": "101601401068",
+                "author": {
+                    "name": "Наталья",
+                    "avatarUrl": "https://avatars.mds.yandex.net/get-yapic/26057/1HVbthArzXi45AZosfkBuc1gBOs-1/{size}"
+                },
+                "text": "Классное место...",
+                "rating": 5,
+                "updatedTime": "2024-06-06T07:35:13.094Z",
+                "reactions": {
+                    "likes": 2,
+                    "dislikes": 0
+                }
+            }
+        ],
+        "params": {
+            "offset": 0,
+            "limit": 2,
+            "count": 3,
+            "loadedReviewsCount": 2,
+            "page": 1,
+            "totalPages": 2,
+            "reviewsRemained": 1
+        }
+    }
+}

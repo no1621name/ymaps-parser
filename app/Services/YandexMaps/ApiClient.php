@@ -99,7 +99,7 @@ class ApiClient
 
             yield $firstResponse['data']['reviews'];
 
-            if (count($firstResponse['data']['reviews']) < $this->config->pageSize) {
+            if ($this->isLastPage($firstResponse)) {
                 return;
             }
         }
@@ -115,14 +115,7 @@ class ApiClient
         }
 
         try {
-            $responses = Http::pool(function (Pool $pool) use ($id, $session, $pages, $headers) {
-                foreach ($pages as $page) {
-                    $pool->as('page_'.$page)
-                        ->withOptions(['cookies' => $this->cookieJar()])
-                        ->withHeaders($headers)
-                        ->get($this->buildReviewUrl($id, $session, $page));
-                }
-            }, concurrency: $this->config->concurrency);
+            $responses = $this->poolReviews($id, $session, $pages, $headers);
 
             foreach ($pages as $page) {
                 $data = $this->parseReviewResponse($responses['page_'.$page]);
@@ -133,7 +126,7 @@ class ApiClient
 
                 yield $data['data']['reviews'];
 
-                if (count($data['data']['reviews']) < $this->config->pageSize) {
+                if ($this->isLastPage($data)) {
                     return;
                 }
             }
@@ -144,6 +137,18 @@ class ApiClient
 
             yield from $this->fetchPagesSequential($id, $session, $pages, $headers);
         }
+    }
+
+    protected function poolReviews(BusinessId $id, array $session, array $pages, array $headers): array
+    {
+        return Http::pool(function (Pool $pool) use ($id, $session, $pages, $headers) {
+            foreach ($pages as $page) {
+                $pool->as('page_'.$page)
+                    ->withOptions(['cookies' => $this->cookieJar()])
+                    ->withHeaders($headers)
+                    ->get($this->buildReviewUrl($id, $session, $page));
+            }
+        }, concurrency: $this->config->concurrency);
     }
 
     private function sendReviewRequest(BusinessId $id, array $session, int $page, array $headers): Response
@@ -179,7 +184,7 @@ class ApiClient
 
             yield $data['data']['reviews'];
 
-            if (count($data['data']['reviews']) < $this->config->pageSize) {
+            if ($this->isLastPage($data)) {
                 return;
             }
         }
@@ -242,6 +247,15 @@ class ApiClient
         }
 
         return $data;
+    }
+
+    private function isLastPage(array $response): bool
+    {
+        if (isset($response['data']['params']['page']) && isset($response['data']['params']['totalPages'])) {
+            return (int) $response['data']['params']['page'] >= (int) $response['data']['params']['totalPages'];
+        }
+
+        return count($response['data']['reviews']) < $this->config->pageSize;
     }
 
     private function djb2Hash(string $str): string
