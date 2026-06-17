@@ -2,8 +2,15 @@ FROM php:8.5-fpm-alpine
 WORKDIR /var/www
 
 RUN apk add --no-cache postgresql-dev postgresql-client \
+    nodejs npm chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont \
     && docker-php-ext-install pdo_pgsql \
     && apk del postgresql-dev
+
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+RUN npm install -g puppeteer
+
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 COPY . .
