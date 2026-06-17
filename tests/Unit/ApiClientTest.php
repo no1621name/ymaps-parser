@@ -177,6 +177,91 @@ class ApiClientTest extends TestCase
         $this->assertCount(1, $allReviews[1]);
     }
 
+    public function test_fetch_all_reviews_rate_limit_on_first_page_falls_back_to_sequential(): void
+    {
+        $rateLimitTxt = file_get_contents(__DIR__.'/../Fixtures/YandexMaps/rate-limit-response.txt');
+        $json2 = file_get_contents(__DIR__.'/../Fixtures/YandexMaps/reviews-page-2.json');
+
+        Http::fake([
+            'yandex.ru/maps/api/business/fetchReviews*' => function (Request $request) use ($rateLimitTxt, $json2) {
+                $url = $request->url();
+                $params = [];
+                parse_str($url, $params);
+                $page = (int) ($params['page'] ?? 1);
+
+                if ($page === 1) {
+                    return Http::response($rateLimitTxt, 429, ['Content-Type' => 'text/html']);
+                }
+
+                return Http::response($json2, 200, ['Content-Type' => 'application/json']);
+            },
+        ]);
+
+        $session = [
+            'csrfToken' => 'abc123:1781389331',
+            'sessionId' => 'req123:1781389331',
+            'reqId' => 'stackReq123:1781389331',
+        ];
+
+        $allReviews = [];
+        foreach ($this->apiClient->fetchAllReviews($this->businessId, $session) as $reviews) {
+            $allReviews[] = $reviews;
+        }
+
+        $this->assertCount(1, $allReviews);
+        $this->assertCount(1, $allReviews[0]);
+    }
+
+    public function test_fetch_all_reviews_rate_limit_on_pooled_requests_falls_back_to_sequential(): void
+    {
+        $json1 = file_get_contents(__DIR__.'/../Fixtures/YandexMaps/reviews-page-1.json');
+        $rateLimitTxt = file_get_contents(__DIR__.'/../Fixtures/YandexMaps/rate-limit-response.txt');
+        $json2 = file_get_contents(__DIR__.'/../Fixtures/YandexMaps/reviews-page-2.json');
+
+        $pageRequestCount = [];
+
+        Http::fake([
+            'yandex.ru/maps/api/business/fetchReviews*' => function (Request $request) use ($json1, $rateLimitTxt, $json2, &$pageRequestCount) {
+                $url = $request->url();
+                $params = [];
+                parse_str($url, $params);
+                $page = (int) ($params['page'] ?? 1);
+
+                if (! isset($pageRequestCount[$page])) {
+                    $pageRequestCount[$page] = 0;
+                }
+                $pageRequestCount[$page]++;
+
+                if ($page === 1) {
+                    return Http::response($json1, 200, ['Content-Type' => 'application/json']);
+                }
+
+                if ($pageRequestCount[$page] === 1) {
+                    return Http::response($rateLimitTxt, 429, ['Content-Type' => 'text/html']);
+                }
+
+                return Http::response($json2, 200, ['Content-Type' => 'application/json']);
+            },
+        ]);
+
+        $session = [
+            'csrfToken' => 'abc123:1781389331',
+            'sessionId' => 'req123:1781389331',
+            'reqId' => 'stackReq123:1781389331',
+        ];
+
+        $allReviews = [];
+        foreach ($this->apiClient->fetchAllReviews($this->businessId, $session) as $reviews) {
+            $allReviews[] = $reviews;
+        }
+
+        $this->assertGreaterThan(1, ($pageRequestCount[2] ?? 0), 'Page 2 should have been retried');
+
+        $this->assertCount(2, $allReviews);
+        $this->assertCount(2, $allReviews[0]);
+        $this->assertCount(1, $allReviews[1]);
+    }
+
     public function test_fetch_all_reviews_single_page(): void
     {
         $json = file_get_contents(__DIR__.'/../Fixtures/YandexMaps/reviews-page-single.json');
