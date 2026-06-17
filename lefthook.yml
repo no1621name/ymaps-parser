@@ -14,7 +14,7 @@ pre-push:
     - name: run backend tests
       tags:
         - backend
-      run: php artisan test
+      run: php artisan test --compact
 
     - name: lint backend
       tags:
