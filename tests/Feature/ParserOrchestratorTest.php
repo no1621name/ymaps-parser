@@ -6,6 +6,8 @@ use App\Enums\OrganizationStatus;
 use App\Exceptions\YandexParseException;
 use App\Models\Organization;
 use App\Services\YandexMaps\ApiClient;
+use App\Services\YandexMaps\ApiReviewParser;
+use App\Services\YandexMaps\HeadlessReviewParser;
 use App\Services\YandexMaps\HtmlParser;
 use App\Services\YandexMaps\ParserOrchestrator;
 use App\Services\YandexMaps\YandexMapsConfig;
@@ -26,8 +28,11 @@ class ParserOrchestratorTest extends TestCase
         $config = YandexMapsConfig::fromConfig();
         $htmlParser = new HtmlParser;
         $apiClient = new ApiClient($config);
+        $apiReviewParser = new ApiReviewParser($htmlParser, $apiClient);
+        $headlessReviewParser = $this->createMock(HeadlessReviewParser::class);
+        $headlessReviewParser->method('parse')->willThrowException(new YandexParseException('Headless mock failed'));
 
-        $this->orchestrator = new ParserOrchestrator($htmlParser, $apiClient);
+        $this->orchestrator = new ParserOrchestrator($apiReviewParser, $headlessReviewParser);
     }
 
     public function test_full_parse_pipeline(): void
